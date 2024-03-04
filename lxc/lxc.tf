@@ -32,3 +32,27 @@ provider "proxmox" {
 	pm_api_token_id = var.proxmoxuser
 	pm_api_token_secret = var.proxmoxtoken
 }
+
+resource "proxmox_lxc" "terraform-test" {
+  target_node  = "pve"
+  hostname     = "terraform-test"
+  ostemplate   = "local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst"
+  password     = "BasicLXCContainer"
+  unprivileged = true
+  features {
+        nesting = true
+    }
+
+  // Terraform will crash without rootfs defined
+  rootfs {
+    storage = "zfs-DataStor"
+    size    = "16G"
+  }
+
+  network {
+    name   = "eth0"
+    bridge = "vmbr2"
+    ip     = "dhcp"
+    tag    = 10
+  }
+}
